@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AniTap Mini App</title>
+<title>AniTap</title>
 
+<!-- Telegram Mini App -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
@@ -38,14 +39,14 @@ h1 {
 
 .score {
   font-size: 22px;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .tap {
   width: 200px;
   height: 200px;
   border-radius: 50%;
-  margin: 0 auto 15px;
+  margin: 0 auto 20px;
   background: radial-gradient(circle, #ff512f, #dd2476);
   display: flex;
   justify-content: center;
@@ -54,6 +55,7 @@ h1 {
   font-weight: bold;
   cursor: pointer;
   user-select: none;
+  transition: transform 0.1s;
 }
 
 .tap:active {
@@ -61,7 +63,7 @@ h1 {
 }
 
 .info {
-  font-size: 14px;
+  font-size: 13px;
   opacity: 0.8;
 }
 </style>
@@ -71,7 +73,7 @@ h1 {
 
 <div class="container">
   <h1>🔥 AniTap 🔥</h1>
-  <div class="score">Очки: <span id="score">0</span></div>
+  <div class="score">💰 Очки: <span id="score">0</span></div>
   <div class="tap" onclick="tap()">TAP</div>
   <div class="info">Telegram Mini App</div>
 </div>
@@ -80,18 +82,19 @@ h1 {
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-const userId = tg.initDataUnsafe?.user?.id || 0;
-const API = "http://127.0.0.1:5000";
+// уникальный ID игрока (Telegram или локальный)
+const uid = tg.initDataUnsafe?.user?.id || "local_user";
 
-async function tap() {
-  const res = await fetch(API + "/tap", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({user_id: userId})
-  });
+// загрузка сохранённых очков
+let score = localStorage.getItem("score_" + uid);
+if (!score) score = 0;
+document.getElementById("score").innerText = score;
 
-  const data = await res.json();
-  document.getElementById("score").innerText = data.score;
+// тап
+function tap() {
+  score++;
+  document.getElementById("score").innerText = score;
+  localStorage.setItem("score_" + uid, score);
 }
 </script>
 

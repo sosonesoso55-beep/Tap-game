@@ -6,145 +6,139 @@
 <title>Anime Tap</title>
 
 <style>
+* {
+  box-sizing: border-box;
+  user-select: none;
+  font-family: Arial, sans-serif;
+}
+
 body {
   margin: 0;
-  font-family: Arial;
-  background: #0b0e14;
-  color: #fff;
+  background: radial-gradient(circle at top, #1b1b2f, #000);
+  color: white;
   text-align: center;
 }
-.card {
-  background: #151a2d;
-  margin: 10px;
-  padding: 15px;
-  border-radius: 15px;
+
+h1 {
+  margin: 15px 0 5px;
 }
+
+#score {
+  font-size: 28px;
+  margin-bottom: 10px;
+  color: #00ffcc;
+}
+
+#girl {
+  width: 260px;
+  max-width: 80%;
+  border-radius: 20px;
+  box-shadow: 0 0 30px rgba(255,0,255,.4);
+  transition: transform 0.08s;
+}
+
+#girl:active {
+  transform: scale(0.95);
+}
+
+.menu {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
 button {
-  width: 100%;
-  padding: 14px;
-  margin-top: 10px;
+  background: linear-gradient(135deg, #ff00cc, #3333ff);
   border: none;
-  border-radius: 12px;
-  background: linear-gradient(135deg,#6c8cff,#ff4ecd);
   color: white;
+  padding: 12px 16px;
+  border-radius: 12px;
   font-size: 16px;
 }
-.hidden { display: none; }
+
+button:active {
+  transform: scale(0.95);
+}
+
+#boosts {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #ffd700;
+}
 </style>
 </head>
 
 <body>
 
-<h1>⚡ Anime Tap</h1>
+<h1>🔥 Anime Tap</h1>
+<div id="score">0</div>
 
-<div class="card" id="main">
-  <p>Очки: <b id="score">0</b></p>
-  <p id="boostInfo"></p>
-  <button onclick="tap()">TAP 💥</button>
+<img id="girl" src="girl.png" alt="tap">
 
-  <button onclick="openTab('shop')">🛒 Магазин</button>
-  <button onclick="openTab('leaderboard')">🏆 Лидерборд</button>
+<div class="menu">
+  <button onclick="buyBoost(2)">x2 (500)</button>
+  <button onclick="buyBoost(5)">x5 (3000)</button>
 </div>
 
-<div class="card hidden" id="shop">
-  <h3>🛒 Магазин (10 минут)</h3>
-
-  <button onclick="buyBoost(2, 500)">x2 — 500 очков</button>
-  <button onclick="buyBoost(5, 3000)">x5 — 3000 очков</button>
-
-  <button onclick="back()">⬅ Назад</button>
-</div>
-
-<div class="card hidden" id="leaderboard">
-  <h3>🏆 Лидерборд</h3>
-  <ol id="leaders"></ol>
-  <button onclick="back()">⬅ Назад</button>
-</div>
+<div id="boosts"></div>
 
 <script>
-const SERVER = "https://anime-tap-server.onrender.com";
-const BOOST_TIME = 10 * 60 * 1000; // 10 минут
-
-let uid = localStorage.getItem("uid") || crypto.randomUUID();
-localStorage.setItem("uid", uid);
-
-let score = 0;
-
-function getBoost() {
-  const end = Number(localStorage.getItem("boostEnd"));
-  const boost = Number(localStorage.getItem("boost")) || 1;
-  if (Date.now() > end) {
-    localStorage.removeItem("boost");
-    localStorage.removeItem("boostEnd");
-    return 1;
-  }
-  return boost;
-}
-
-function updateBoostUI() {
-  const end = Number(localStorage.getItem("boostEnd"));
-  if (!end) {
-    boostInfo.textContent = "Буст: x1";
-    return;
-  }
-  const left = Math.max(0, Math.floor((end - Date.now()) / 1000));
-  boostInfo.textContent = `Буст: x${getBoost()} (${left}s)`;
-}
-
-setInterval(updateBoostUI, 1000);
-
-function tap() {
-  fetch(`${SERVER}/tap`, {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      uid,
-      multi: getBoost()
-    })
-  })
-  .then(r=>r.json())
-  .then(d=>{
-    score = d.score;
-    scoreEl.textContent = score;
-  });
-}
-
-function buyBoost(multiplier, cost) {
-  if (score < cost) return alert("❌ Не хватает очков");
-
-  localStorage.setItem("boost", multiplier);
-  localStorage.setItem("boostEnd", Date.now() + BOOST_TIME);
-
-  alert(`✅ x${multiplier} активирован на 10 минут`);
-}
-
-function openTab(id) {
-  document.querySelectorAll(".card").forEach(c=>c.classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
-  if (id === "leaderboard") loadLeaders();
-}
-
-function back() {
-  document.querySelectorAll(".card").forEach(c=>c.classList.add("hidden"));
-  main.classList.remove("hidden");
-}
-
-function loadLeaders() {
-  fetch(`${SERVER}/leaderboard`)
-    .then(r=>r.json())
-    .then(data=>{
-      leaders.innerHTML = "";
-      data.forEach(u=>{
-        const li = document.createElement("li");
-        li.textContent = u.uid.slice(0,6)+"… — "+u.score;
-        leaders.appendChild(li);
-      });
-    });
-}
+let score = Number(localStorage.getItem("score")) || 0;
+let multiplier = 1;
+let boostEnd = Number(localStorage.getItem("boostEnd")) || 0;
+let boostMult = Number(localStorage.getItem("boostMult")) || 1;
 
 const scoreEl = document.getElementById("score");
-const boostInfo = document.getElementById("boostInfo");
-updateBoostUI();
+const boostsEl = document.getElementById("boosts");
+const girl = document.getElementById("girl");
+
+function updateScore() {
+  scoreEl.textContent = Math.floor(score);
+  localStorage.setItem("score", score);
+}
+
+function tap() {
+  score += multiplier;
+  updateScore();
+
+  girl.style.transform = "scale(0.92)";
+  setTimeout(() => girl.style.transform = "scale(1)", 80);
+}
+
+girl.onclick = tap;
+
+function buyBoost(x) {
+  const cost = x === 2 ? 500 : 3000;
+  if (score < cost) return alert("❌ Не хватает очков");
+
+  score -= cost;
+  multiplier = x;
+  boostMult = x;
+  boostEnd = Date.now() + 10 * 60 * 1000;
+
+  localStorage.setItem("boostEnd", boostEnd);
+  localStorage.setItem("boostMult", boostMult);
+
+  updateScore();
+}
+
+function checkBoost() {
+  if (Date.now() < boostEnd) {
+    multiplier = boostMult;
+    const left = Math.ceil((boostEnd - Date.now()) / 1000);
+    boostsEl.textContent = `⚡ x${multiplier} осталось ${left} сек`;
+  } else {
+    multiplier = 1;
+    boostMult = 1;
+    boostsEl.textContent = "";
+    localStorage.removeItem("boostEnd");
+    localStorage.removeItem("boostMult");
+  }
+}
+
+updateScore();
+setInterval(checkBoost, 500);
 </script>
 
 </body>

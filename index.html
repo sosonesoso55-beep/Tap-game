@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AniTap</title>
+<title>AniTap Mini App</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
 * {
@@ -14,7 +16,7 @@
 }
 
 body {
-  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  background: linear-gradient(135deg, #141e30, #243b55);
   height: 100vh;
   display: flex;
   justify-content: center;
@@ -23,30 +25,28 @@ body {
 }
 
 .container {
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,0.7);
   padding: 25px;
   border-radius: 20px;
   width: 320px;
   text-align: center;
-  box-shadow: 0 0 30px rgba(0,0,0,0.7);
 }
 
 h1 {
-  margin-bottom: 15px;
-  font-size: 28px;
+  margin-bottom: 10px;
 }
 
 .score {
   font-size: 22px;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .tap {
   width: 200px;
   height: 200px;
-  margin: 0 auto 20px;
   border-radius: 50%;
-  background: radial-gradient(circle, #ff416c, #ff4b2b);
+  margin: 0 auto 15px;
+  background: radial-gradient(circle, #ff512f, #dd2476);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -54,7 +54,6 @@ h1 {
   font-weight: bold;
   cursor: pointer;
   user-select: none;
-  transition: transform 0.1s;
 }
 
 .tap:active {
@@ -73,25 +72,26 @@ h1 {
 <div class="container">
   <h1>🔥 AniTap 🔥</h1>
   <div class="score">Очки: <span id="score">0</span></div>
-
   <div class="tap" onclick="tap()">TAP</div>
-
-  <div class="info">Тапай и прокачивайся 🚀</div>
+  <div class="info">Telegram Mini App</div>
 </div>
 
 <script>
+const tg = window.Telegram.WebApp;
+tg.expand();
+
+const userId = tg.initDataUnsafe?.user?.id || 0;
 const API = "http://127.0.0.1:5000";
 
 async function tap() {
-  try {
-    const res = await fetch(API + "/tap", {
-      method: "POST"
-    });
-    const data = await res.json();
-    document.getElementById("score").innerText = data.score;
-  } catch (e) {
-    alert("Сервер не запущен");
-  }
+  const res = await fetch(API + "/tap", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({user_id: userId})
+  });
+
+  const data = await res.json();
+  document.getElementById("score").innerText = data.score;
 }
 </script>
 

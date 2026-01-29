@@ -2,130 +2,225 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<title>AnimeTap</title>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Anime Tap</title>
+
+<!-- Telegram -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
 
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  user-select:none;
+  font-family:Arial, sans-serif;
 }
 
-body {
-    width: 100vw;
-    height: 100vh;
-    background: radial-gradient(circle at top, #2b0040, #000);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-family: Arial, sans-serif;
-    overflow: hidden;
+body{
+  height:100vh;
+  background:radial-gradient(circle,#3a005c,#000);
+  color:#fff;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:space-between;
 }
 
-/* Очки */
-#score {
-    color: #fff;
-    font-size: 32px;
-    margin-bottom: 30px;
-    text-shadow: 0 0 15px #ff66ff;
+header{
+  text-align:center;
+  margin-top:16px;
 }
 
-/* Круг тапа */
-#tap-area {
-    width: 280px;
-    height: 280px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+#score{
+  font-size:22px;
+  margin-top:6px;
 }
 
-#tap-img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-    box-shadow: 0 0 45px #ff4dff;
-    transition: transform 0.1s ease;
+#tap{
+  width:260px;
+  height:260px;
+  border-radius:50%;
+  background:url("tap.png") center/cover no-repeat;
+  box-shadow:0 0 40px #b300ff;
+  transition:transform .05s;
 }
 
-/* Анимация */
-.tap-anim {
-    transform: scale(0.9);
+#tap:active{
+  transform:scale(.95);
 }
 
-/* +1 */
-.plus {
-    position: absolute;
-    color: #ff7bff;
-    font-size: 24px;
-    pointer-events: none;
-    animation: fly 1s ease-out forwards;
-    text-shadow: 0 0 10px #ff7bff;
+.menu{
+  width:100%;
+  display:flex;
+  justify-content:space-around;
+  padding:12px 0;
+  background:rgba(0,0,0,.6);
 }
 
-@keyframes fly {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(-80px);
-    }
+.menu button{
+  background:none;
+  border:none;
+  color:white;
+  font-size:12px;
+}
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.85);
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+
+.modal-box{
+  background:#1b0029;
+  padding:18px;
+  border-radius:14px;
+  width:85%;
+  text-align:center;
+}
+
+.modal-box button{
+  margin-top:12px;
+  padding:8px 14px;
+  border:none;
+  border-radius:8px;
+  background:#8f00ff;
+  color:white;
 }
 </style>
 </head>
 
 <body>
 
-<div id="score">Очки: 0</div>
+<header>
+  <h2>AnimeTap</h2>
+  <div id="score">Очки: 0</div>
+</header>
 
-<div id="tap-area">
-    <img id="tap-img" src="file_0000000ba1c71f4c980ff2d2fe7b75bc.png">
+<div id="tap"></div>
+
+<div class="menu">
+  <button onclick="openMenu('profile')">👤</button>
+  <button onclick="openMenu('top')">🏆</button>
+  <button onclick="openMenu('donate')">💎</button>
+</div>
+
+<div class="modal" id="modal">
+  <div class="modal-box" id="modalBox"></div>
 </div>
 
 <script>
-let score = localStorage.getItem("score") 
-    ? parseInt(localStorage.getItem("score")) 
-    : 0;
+/* ================= НАСТРОЙКИ ================= */
+const SERVER_URL = "https://YOUR_SERVER_URL"; // ← ЗАМЕНИ
+const SECRET = "SECRET_KEY"; // должен совпадать с сервером
+/* ============================================ */
 
-const scoreEl = document.getElementById("score");
-const tapImg = document.getElementById("tap-img");
-const tapArea = document.getElementById("tap-area");
+const tg = Telegram.WebApp;
+tg.expand();
 
-scoreEl.textContent = "Очки: " + score;
+const user = tg.initDataUnsafe.user;
+const userId = user.id;
+const username = user.username || "user";
 
-function tap(x, y) {
-    score++;
-    localStorage.setItem("score", score);
-    scoreEl.textContent = "Очки: " + score;
+/* СОСТОЯНИЕ */
+let score = 0;
 
-    tapImg.classList.add("tap-anim");
-    setTimeout(() => tapImg.classList.remove("tap-anim"), 100);
-
-    const plus = document.createElement("div");
-    plus.className = "plus";
-    plus.textContent = "+1";
-    plus.style.left = x + "px";
-    plus.style.top = y + "px";
-    document.body.appendChild(plus);
-
-    setTimeout(() => plus.remove(), 1000);
+/* ПОДПИСЬ (АНТИЧИТ) */
+function sign(value){
+  return CryptoJS.SHA256(userId + ":" + value + ":" + SECRET).toString();
 }
 
-tapArea.addEventListener("click", e => {
-    tap(e.clientX, e.clientY);
-});
+/* UI */
+const scoreEl = document.getElementById("score");
+function updateUI(){
+  scoreEl.innerText = "Очки: " + score;
+}
 
-tapArea.addEventListener("touchstart", e => {
-    const t = e.touches[0];
-    tap(t.clientX, t.clientY);
-});
+/* ТАП */
+document.getElementById("tap").onclick = () => {
+  score++;
+  updateUI();
+  save();
+};
+
+/* СОХРАНЕНИЕ НА СЕРВЕР */
+function save(){
+  fetch(SERVER_URL + "/save",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      id:userId,
+      name:username,
+      score:score,
+      sign:sign(score)
+    })
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    if(d.error){
+      alert("Античит: данные отклонены");
+    }
+  });
+}
+
+/* МЕНЮ */
+function openMenu(type){
+  const box = document.getElementById("modalBox");
+  const modal = document.getElementById("modal");
+
+  if(type==="profile"){
+    box.innerHTML = `
+      <h3>Профиль</h3>
+      <p>@${username}</p>
+      <p>Очки: ${score}</p>
+      <button onclick="closeMenu()">Закрыть</button>
+    `;
+  }
+
+  if(type==="top"){
+    box.innerHTML = `<h3>Лидерборд</h3><p>Загрузка...</p>`;
+    fetch(SERVER_URL + "/top")
+      .then(r=>r.json())
+      .then(top=>{
+        box.innerHTML = `
+          <h3>🏆 ТОП</h3>
+          ${top.map(t=>`<p>${t.place}. ${t.name || "user"} — ${t.score}</p>`).join("")}
+          <button onclick="closeMenu()">Закрыть</button>
+        `;
+      });
+  }
+
+  if(type==="donate"){
+    box.innerHTML = `
+      <h3>Telegram Stars</h3>
+      <p>1000 очков</p>
+      <button onclick="buyStars()">Купить</button>
+      <button onclick="closeMenu()">Закрыть</button>
+    `;
+  }
+
+  modal.style.display = "flex";
+}
+
+function closeMenu(){
+  document.getElementById("modal").style.display = "none";
+}
+
+/* DONATE */
+function buyStars(){
+  tg.openInvoice({
+    title: "1000 очков",
+    description: "Покупка очков",
+    currency: "XTR",
+    prices: [{ label: "1000 очков", amount: 100 }],
+    payload: "tap_pack_1000"
+  });
+}
 </script>
 
 </body>

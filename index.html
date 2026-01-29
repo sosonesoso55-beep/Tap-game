@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Tap Game</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(160deg, #0f0c29, #302b63, #24243e);
+      font-family: Arial, sans-serif;
+      color: #fff;
+    }
+    .score {
+      font-size: 28px;
+      margin-bottom: 30px;
+    }
+    .tap {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ff5fd2, #7f00ff);
+      box-shadow: 0 0 40px rgba(255, 95, 210, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 26px;
+      font-weight: bold;
+      cursor: pointer;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="score">💰 0</div>
+<div class="tap" onclick="tap()">TAP</div>
+
+<script>
+  let score = 0;
+  function tap() {
+    score++;
+    document.querySelector('.score').textContent = '💰 ' + score;
+  }
+</script>
+
+</body>
+</html>

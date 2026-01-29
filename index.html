@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Anime Tap</title>
 
 <style>
@@ -11,6 +11,7 @@
     padding: 0;
     box-sizing: border-box;
     user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -27,45 +28,47 @@ body {
 
 /* Очки */
 #score {
-    font-size: 34px;
     color: #fff;
-    margin-bottom: 25px;
+    font-size: 32px;
+    margin-bottom: 30px;
     text-shadow: 0 0 15px #ff66ff;
 }
 
-/* Тап */
-#tap {
-    width: 260px;
-    height: 260px;
-    border: none;
-    background: none;
-    padding: 0;
+/* Круг тапа */
+#tap-area {
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-#tap img {
+#tap-img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
     border-radius: 50%;
-    box-shadow: 0 0 40px #ff4dff;
+    object-fit: cover;
+    box-shadow: 0 0 45px #ff4dff;
     transition: transform 0.1s ease;
 }
 
-#tap:active img {
-    transform: scale(0.92);
+/* Анимация */
+.tap-anim {
+    transform: scale(0.9);
 }
 
 /* +1 */
 .plus {
     position: absolute;
-    font-size: 24px;
     color: #ff7bff;
+    font-size: 24px;
     pointer-events: none;
-    animation: floatUp 1s ease-out forwards;
+    animation: fly 1s ease-out forwards;
     text-shadow: 0 0 10px #ff7bff;
 }
 
-@keyframes floatUp {
+@keyframes fly {
     from {
         opacity: 1;
         transform: translateY(0);
@@ -82,30 +85,46 @@ body {
 
 <div id="score">Очки: 0</div>
 
-<button id="tap">
-    <img src="file_0000000ba1c71f4c980ff2d2fe7b75bc.png" alt="tap">
-</button>
+<div id="tap-area">
+    <img id="tap-img" src="file_0000000ba1c71f4c980ff2d2fe7b75bc.png">
+</div>
 
 <script>
-let score = 0;
-const scoreEl = document.getElementById("score");
-const tapBtn = document.getElementById("tap");
+let score = localStorage.getItem("score") 
+    ? parseInt(localStorage.getItem("score")) 
+    : 0;
 
-tapBtn.addEventListener("click", (e) => {
+const scoreEl = document.getElementById("score");
+const tapImg = document.getElementById("tap-img");
+const tapArea = document.getElementById("tap-area");
+
+scoreEl.textContent = "Очки: " + score;
+
+function tap(x, y) {
     score++;
+    localStorage.setItem("score", score);
     scoreEl.textContent = "Очки: " + score;
+
+    tapImg.classList.add("tap-anim");
+    setTimeout(() => tapImg.classList.remove("tap-anim"), 100);
 
     const plus = document.createElement("div");
     plus.className = "plus";
     plus.textContent = "+1";
-    plus.style.left = e.clientX + "px";
-    plus.style.top = e.clientY + "px";
-
+    plus.style.left = x + "px";
+    plus.style.top = y + "px";
     document.body.appendChild(plus);
 
-    setTimeout(() => {
-        plus.remove();
-    }, 1000);
+    setTimeout(() => plus.remove(), 1000);
+}
+
+tapArea.addEventListener("click", e => {
+    tap(e.clientX, e.clientY);
+});
+
+tapArea.addEventListener("touchstart", e => {
+    const t = e.touches[0];
+    tap(t.clientX, t.clientY);
 });
 </script>
 

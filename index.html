@@ -3,98 +3,45 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AniTap</title>
-
-<!-- Telegram Mini App -->
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<title>Tap Test</title>
 
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
-}
-
 body {
-  background: linear-gradient(135deg, #141e30, #243b55);
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background: #111;
   color: white;
-}
-
-.container {
-  background: rgba(0,0,0,0.7);
-  padding: 25px;
-  border-radius: 20px;
-  width: 320px;
-  text-align: center;
-}
-
-h1 {
-  margin-bottom: 10px;
-}
-
-.score {
-  font-size: 22px;
-  margin-bottom: 20px;
-}
-
-.tap {
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  margin: 0 auto 20px;
-  background: radial-gradient(circle, #ff512f, #dd2476);
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 26px;
-  font-weight: bold;
-  cursor: pointer;
-  user-select: none;
-  transition: transform 0.1s;
+  height: 100vh;
+  font-family: Arial;
 }
 
-.tap:active {
-  transform: scale(0.92);
-}
-
-.info {
-  font-size: 13px;
-  opacity: 0.8;
+button {
+  font-size: 24px;
+  padding: 20px 40px;
+  border-radius: 15px;
+  border: none;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
-  <h1>🔥 AniTap 🔥</h1>
-  <div class="score">💰 Очки: <span id="score">0</span></div>
-  <div class="tap" onclick="tap()">TAP</div>
-  <div class="info">Telegram Mini App</div>
+<div>
+  <p>Очки: <span id="score">0</span></p>
+  <button onclick="tap()">TAP</button>
 </div>
 
 <script>
-const tg = window.Telegram.WebApp;
-tg.expand();
+let score = localStorage.getItem("score");
 
-// уникальный ID игрока (Telegram или локальный)
-const uid = tg.initDataUnsafe?.user?.id || "local_user";
-
-// загрузка сохранённых очков
-let score = localStorage.getItem("score_" + uid);
 if (!score) score = 0;
 document.getElementById("score").innerText = score;
 
-// тап
 function tap() {
   score++;
   document.getElementById("score").innerText = score;
-  localStorage.setItem("score_" + uid, score);
+  localStorage.setItem("score", score);
 }
 </script>
 

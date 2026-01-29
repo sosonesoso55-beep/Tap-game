@@ -3,142 +3,237 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Anime Tap</title>
+<title>Anime Tap Game</title>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
+
 * {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
   user-select: none;
-  font-family: Arial, sans-serif;
 }
 
 body {
-  margin: 0;
-  background: radial-gradient(circle at top, #1b1b2f, #000);
+  font-family: 'Orbitron', sans-serif;
+  background: radial-gradient(circle at top, #1a0033, #000);
   color: white;
-  text-align: center;
+  height: 100vh;
+  overflow: hidden;
 }
 
-h1 {
-  margin: 15px 0 5px;
+/* ===== BACKGROUND EFFECT ===== */
+.bg-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 20%, #ff00ff33, transparent 40%),
+    radial-gradient(circle at 80% 80%, #00ffff22, transparent 40%);
+  animation: bgMove 12s infinite alternate;
+}
+@keyframes bgMove {
+  from { filter: hue-rotate(0deg); }
+  to { filter: hue-rotate(60deg); }
 }
 
-#score {
-  font-size: 28px;
-  margin-bottom: 10px;
-  color: #00ffcc;
+/* ===== TOP BAR ===== */
+.top {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 22px;
+  text-shadow: 0 0 15px #ff00ff;
 }
 
-#girl {
-  width: 260px;
-  max-width: 80%;
-  border-radius: 20px;
-  box-shadow: 0 0 30px rgba(255,0,255,.4);
-  transition: transform 0.08s;
-}
-
-#girl:active {
-  transform: scale(0.95);
-}
-
-.menu {
-  margin-top: 20px;
+/* ===== MAIN ===== */
+.game {
+  position: relative;
+  height: 100%;
   display: flex;
   justify-content: center;
+  align-items: center;
+}
+
+/* ===== TAP IMAGE ===== */
+#girl {
+  width: 260px;
+  filter: drop-shadow(0 0 40px #ff00ff);
+  transition: transform 0.08s, filter 0.2s;
+}
+#girl:active {
+  transform: scale(0.92) rotate(-2deg);
+  filter: drop-shadow(0 0 70px #ff66ff);
+}
+
+/* ===== FLOAT TEXT ===== */
+.float {
+  position: absolute;
+  color: #ff66ff;
+  font-size: 20px;
+  animation: floatUp 1s forwards;
+  pointer-events: none;
+}
+@keyframes floatUp {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-60px); }
+}
+
+/* ===== BOTTOM MENU ===== */
+.menu {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
   gap: 10px;
 }
 
-button {
-  background: linear-gradient(135deg, #ff00cc, #3333ff);
+.menu button {
+  background: linear-gradient(135deg, #ff00ff, #00ffff);
   border: none;
-  color: white;
-  padding: 12px 16px;
+  padding: 10px 14px;
   border-radius: 12px;
-  font-size: 16px;
+  font-size: 12px;
+  color: black;
+  box-shadow: 0 0 15px #ff00ff;
+  cursor: pointer;
+}
+.menu button:hover {
+  transform: scale(1.1);
 }
 
-button:active {
-  transform: scale(0.95);
+/* ===== PANELS ===== */
+.panel {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  flex-direction: column;
+  padding: 20px;
 }
 
-#boosts {
+.panel h2 {
+  text-align: center;
+  margin-bottom: 15px;
+  color: #ff66ff;
+}
+
+.panel button {
   margin-top: 10px;
-  font-size: 14px;
-  color: #ffd700;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #ff00ff, #00ffff);
 }
 </style>
 </head>
 
 <body>
 
-<h1>🔥 Anime Tap</h1>
-<div id="score">0</div>
+<div class="bg-glow"></div>
 
-<img id="girl" src="girl.png" alt="tap">
-
-<div class="menu">
-  <button onclick="buyBoost(2)">x2 (500)</button>
-  <button onclick="buyBoost(5)">x5 (3000)</button>
+<div class="top">
+  💎 Очки: <span id="score">0</span>
 </div>
 
-<div id="boosts"></div>
+<div class="game">
+  <img id="girl" src="girl.png">
+</div>
+
+<div class="menu">
+  <button onclick="openPanel('shop')">🛒 Магазин</button>
+  <button onclick="openPanel('profile')">👤 Профиль</button>
+  <button onclick="openPanel('settings')">⚙️</button>
+</div>
+
+<!-- SHOP -->
+<div id="shop" class="panel">
+  <h2>🛒 Магазин</h2>
+  <button onclick="buy(2, 500)">x2 на 10 мин — 500</button>
+  <button onclick="buy(5, 3000)">x5 на 10 мин — 3000</button>
+  <button onclick="closePanels()">⬅ Назад</button>
+</div>
+
+<!-- PROFILE -->
+<div id="profile" class="panel">
+  <h2>👤 Профиль</h2>
+  <p>Очки: <span id="pScore"></span></p>
+  <p>Множитель: x<span id="pMulti"></span></p>
+  <button onclick="closePanels()">⬅ Назад</button>
+</div>
+
+<!-- SETTINGS -->
+<div id="settings" class="panel">
+  <h2>⚙️ Настройки</h2>
+  <button onclick="resetGame()">♻ Сбросить прогресс</button>
+  <button onclick="closePanels()">⬅ Назад</button>
+</div>
 
 <script>
-let score = Number(localStorage.getItem("score")) || 0;
-let multiplier = 1;
-let boostEnd = Number(localStorage.getItem("boostEnd")) || 0;
-let boostMult = Number(localStorage.getItem("boostMult")) || 1;
+let score = +localStorage.getItem("score") || 0;
+let multi = +localStorage.getItem("multi") || 1;
+let multiEnd = +localStorage.getItem("multiEnd") || 0;
 
 const scoreEl = document.getElementById("score");
-const boostsEl = document.getElementById("boosts");
-const girl = document.getElementById("girl");
+scoreEl.innerText = score;
 
-function updateScore() {
-  scoreEl.textContent = Math.floor(score);
+function tap(e) {
+  updateMulti();
+  score += multi;
+  scoreEl.innerText = score;
   localStorage.setItem("score", score);
+
+  const t = document.createElement("div");
+  t.className = "float";
+  t.innerText = "+" + multi;
+  t.style.left = e.clientX + "px";
+  t.style.top = e.clientY + "px";
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 1000);
 }
 
-function tap() {
-  score += multiplier;
-  updateScore();
-
-  girl.style.transform = "scale(0.92)";
-  setTimeout(() => girl.style.transform = "scale(1)", 80);
-}
-
-girl.onclick = tap;
-
-function buyBoost(x) {
-  const cost = x === 2 ? 500 : 3000;
-  if (score < cost) return alert("❌ Не хватает очков");
-
+function buy(x, cost) {
+  if (score < cost) return alert("Не хватает очков!");
   score -= cost;
-  multiplier = x;
-  boostMult = x;
-  boostEnd = Date.now() + 10 * 60 * 1000;
-
-  localStorage.setItem("boostEnd", boostEnd);
-  localStorage.setItem("boostMult", boostMult);
-
-  updateScore();
+  multi = x;
+  multiEnd = Date.now() + 10 * 60 * 1000;
+  save();
+  closePanels();
 }
 
-function checkBoost() {
-  if (Date.now() < boostEnd) {
-    multiplier = boostMult;
-    const left = Math.ceil((boostEnd - Date.now()) / 1000);
-    boostsEl.textContent = `⚡ x${multiplier} осталось ${left} сек`;
-  } else {
-    multiplier = 1;
-    boostMult = 1;
-    boostsEl.textContent = "";
-    localStorage.removeItem("boostEnd");
-    localStorage.removeItem("boostMult");
+function updateMulti() {
+  if (multi > 1 && Date.now() > multiEnd) {
+    multi = 1;
+    save();
   }
 }
 
-updateScore();
-setInterval(checkBoost, 500);
+function save() {
+  localStorage.setItem("score", score);
+  localStorage.setItem("multi", multi);
+  localStorage.setItem("multiEnd", multiEnd);
+}
+
+function openPanel(id) {
+  document.getElementById(id).style.display = "flex";
+  document.getElementById("pScore").innerText = score;
+  document.getElementById("pMulti").innerText = multi;
+}
+
+function closePanels() {
+  document.querySelectorAll(".panel").forEach(p => p.style.display = "none");
+}
+
+function resetGame() {
+  if (confirm("Точно сбросить?")) {
+    localStorage.clear();
+    location.reload();
+  }
+}
+
+document.getElementById("girl").onclick = tap;
 </script>
 
 </body>

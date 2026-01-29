@@ -8,106 +8,178 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif}
 body{
-  background: radial-gradient(circle at top,#1b0033,#000);
-  color:white;
-  height:100vh;
-  overflow:hidden;
+background:radial-gradient(circle,#0f0f2d,#000);
+color:#fff;
+height:100vh;
+overflow:hidden;
+}
+
+#app{
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:space-between;
+height:100%;
+padding:10px;
+}
+
+#profile{
+width:100%;
+display:flex;
+align-items:center;
+gap:10px;
+background:rgba(255,255,255,.08);
+padding:10px;
+border-radius:16px;
+}
+
+#profile img{
+width:60px;
+height:60px;
+border-radius:50%;
+border:2px solid #ff69b4;
+}
+
+#stats{
+flex:1;
 }
 
 #score{
-  text-align:center;
-  font-size:28px;
-  margin-top:15px;
+font-size:22px;
+font-weight:bold;
 }
 
-#girl{
-  display:block;
-  margin:40px auto;
-  width:260px;
-  transition:transform 0.1s, filter 0.1s;
-  filter:drop-shadow(0 0 30px #ff66ff);
+#tap-zone{
+flex:1;
+display:flex;
+align-items:center;
+justify-content:center;
 }
 
-#girl:active{
-  transform:scale(0.92);
-  filter:drop-shadow(0 0 60px #ff99ff);
+#tap-btn{
+width:260px;
+height:260px;
+border-radius:50%;
+background:url("girl.png") center/cover;
+border:none;
+box-shadow:0 0 40px #ff69b4;
+animation:pulse 2s infinite;
 }
 
-#musicBtn{
-  position:fixed;
-  top:15px;
-  right:15px;
-  padding:10px 14px;
-  background:#ff4dff;
-  border:none;
-  border-radius:12px;
-  color:white;
-  font-size:16px;
+@keyframes pulse{
+0%{transform:scale(1)}
+50%{transform:scale(1.05)}
+100%{transform:scale(1)}
+}
+
+#menu{
+width:100%;
+display:flex;
+justify-content:space-around;
+background:rgba(0,0,0,.5);
+padding:10px;
+border-radius:20px;
+}
+
+button{
+background:linear-gradient(135deg,#ff69b4,#ff1493);
+border:none;
+border-radius:14px;
+color:#fff;
+padding:10px 14px;
+font-size:14px;
 }
 </style>
 </head>
 
 <body>
+<div id="app">
 
-<button id="musicBtn">🔊</button>
+<div id="profile">
+<img src="girl.png">
+<div id="stats">
+<div>ID: <span id="uid">...</span></div>
 <div id="score">0 ⭐</div>
+</div>
+</div>
 
-<img id="girl" src="girl.png">
+<div id="tap-zone">
+<button id="tap-btn"></button>
+</div>
 
-<!-- ЗВУКИ -->
-<audio id="bgm" src="music.mp3" loop></audio>
+<div id="menu">
+<button onclick="openShop()">🛒 Магазин</button>
+<button onclick="openLB()">🏆 Топ</button>
+<button onclick="openSettings()">⚙️</button>
+</div>
+
+</div>
+
 <audio id="tapSound" src="tap.mp3"></audio>
+<audio id="music" src="music.mp3" loop></audio>
 
 <script>
-const SERVER = "https://anime-tap-server-1.onrender.com";
-const USER_ID = "user_" + Math.random().toString(36).slice(2);
+const tg = window.Telegram?.WebApp;
+tg?.expand();
 
-const scoreEl = document.getElementById("score");
-const girl = document.getElementById("girl");
-const bgm = document.getElementById("bgm");
+const SERVER = "https://YOUR_RENDER_URL"; // ← ЗАМЕНИ
+
+const uid = tg?.initDataUnsafe?.user?.id || localStorage.uid || (localStorage.uid=Math.random().toString(36).slice(2));
+document.getElementById("uid").innerText = uid;
+
+let score = 0;
+let power = 1;
+
 const tapSound = document.getElementById("tapSound");
-const musicBtn = document.getElementById("musicBtn");
+const music = document.getElementById("music");
+music.volume = 0.3;
+music.play();
 
-let musicOn = false;
-
-/* ===== МУЗЫКА ===== */
-musicBtn.onclick = ()=>{
-  if(!musicOn){
-    bgm.volume = 0.5;
-    bgm.play();
-    musicBtn.innerText="🔈";
-  }else{
-    bgm.pause();
-    musicBtn.innerText="🔊";
-  }
-  musicOn=!musicOn;
-};
-
-/* ===== ЗАГРУЗКА ===== */
-async function load(){
-  const r = await fetch(`${SERVER}/me?id=${USER_ID}`);
-  const d = await r.json();
-  scoreEl.innerText = d.score + " ⭐";
+async function sync(){
+const r = await fetch(SERVER+"/state?id="+uid);
+const d = await r.json();
+score = d.score;
+power = d.power;
+render();
 }
-load();
 
-/* ===== ТАП ===== */
 async function tap(){
-  tapSound.currentTime = 0;
-  tapSound.volume = 0.8;
-  tapSound.play();
-
-  const r = await fetch(`${SERVER}/tap`,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({id:USER_ID})
-  });
-  const d = await r.json();
-  scoreEl.innerText = d.score + " ⭐";
+tapSound.currentTime=0;
+tapSound.play();
+const r = await fetch(SERVER+"/tap",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({id:uid})
+});
+const d = await r.json();
+score=d.score;
+power=d.power;
+render();
 }
 
-girl.onclick = tap;
-</script>
+function render(){
+document.getElementById("score").innerText = score+" ⭐";
+}
 
+document.getElementById("tap-btn").onclick = tap;
+
+function openShop(){
+alert("Магазин:\nx2 — 500\nx5 — 3000");
+}
+
+function openLB(){
+fetch(SERVER+"/leaderboard")
+.then(r=>r.json())
+.then(d=>{
+alert("ТОП:\n"+d.map((u,i)=>`${i+1}. ${u.id} — ${u.score}`).join("\n"))
+});
+}
+
+function openSettings(){
+alert("Настройки скоро 👀");
+}
+
+sync();
+</script>
 </body>
 </html>

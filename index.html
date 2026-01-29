@@ -2,93 +2,67 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>AniTap</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
-body {
+* {
   margin: 0;
-  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  padding: 0;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+body {
+  width: 100vw;
   height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: white;
+  background: radial-gradient(circle at top, #1b2735, #090a0f);
   font-family: Arial, sans-serif;
-}
-
-.app {
-  width: 320px;
-  height: 540px;
-  background: rgba(0,0,0,0.65);
-  border-radius: 20px;
+  color: white;
   overflow: hidden;
-  position: relative;
 }
 
+/* HEADER */
 .header {
+  position: absolute;
+  top: 15px;
+  width: 100%;
   text-align: center;
-  padding: 15px;
   font-size: 22px;
   font-weight: bold;
 }
 
-.page {
-  display: none;
-  height: calc(100% - 120px);
-  padding: 20px;
-}
-
-.page.active {
-  display: block;
-}
-
-/* TAP */
+/* SCORE */
 .score {
-  text-align: center;
-  font-size: 20px;
-}
-
-.tap {
-  width: 200px;
-  height: 200px;
-  margin: 15px auto;
-  border-radius: 50%;
-  background: radial-gradient(circle, #ff416c, #ff4b2b);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.tap:active {
-  transform: scale(0.9);
-}
-
-.mult {
-  text-align: center;
-  font-size: 14px;
-  opacity: 0.8;
-}
-
-/* SHOP */
-.shop-item {
-  background: rgba(255,255,255,0.1);
-  padding: 15px;
-  border-radius: 12px;
-  margin-bottom: 10px;
-}
-
-.shop-item button {
+  position: absolute;
+  top: 55px;
   width: 100%;
-  margin-top: 8px;
-  padding: 8px;
-  border-radius: 10px;
-  border: none;
+  text-align: center;
+  font-size: 18px;
+}
+
+/* TAP AREA */
+.tap-area {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* LOGO */
+.logo {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.logo:active {
+  transform: scale(0.92);
 }
 
 /* MENU */
@@ -96,8 +70,8 @@ body {
   position: absolute;
   bottom: 0;
   width: 100%;
-  height: 60px;
-  background: rgba(0,0,0,0.85);
+  height: 65px;
+  background: rgba(0,0,0,0.6);
   display: flex;
 }
 
@@ -106,114 +80,64 @@ body {
   background: none;
   border: none;
   color: white;
+  font-size: 14px;
 }
 
-.menu button.active {
-  background: rgba(255,255,255,0.15);
+/* FLOAT TEXT */
+.float {
+  position: absolute;
+  color: #00ffcc;
+  font-size: 20px;
+  animation: floatUp 0.8s forwards;
+  pointer-events: none;
+}
+
+@keyframes floatUp {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-40px); }
 }
 </style>
 </head>
 
 <body>
 
-<div class="app">
-  <div class="header">🔥 AniTap 🔥</div>
+<div class="header">🔥 AniTap 🔥</div>
+<div class="score">💰 Очки: <span id="score">0</span></div>
 
-  <!-- TAP -->
-  <div class="page active" id="tapPage">
-    <div class="score">💰 Очки: <span id="score">0</span></div>
-    <div class="tap" onclick="tap()">TAP</div>
-    <div class="mult">Множитель: x<span id="multiplier">1</span></div>
-  </div>
+<div class="tap-area">
+  <!-- ЛОГО -->
+  <img src="logo.png" class="logo" onclick="tap(event)">
+</div>
 
-  <!-- SHOP -->
-  <div class="page" id="shopPage">
-    <div class="shop-item">
-      ⚡ x2<br>Цена: 100
-      <button onclick="buy(2,100)">Купить</button>
-    </div>
-    <div class="shop-item">
-      🚀 x5<br>Цена: 500
-      <button onclick="buy(5,500)">Купить</button>
-    </div>
-  </div>
-
-  <!-- PROFILE -->
-  <div class="page" id="profilePage">
-    👤 Профиль<br><br>
-    Очки: <span id="pScore">0</span><br>
-    Множитель: x<span id="pMult">1</span>
-  </div>
-
-  <!-- MENU -->
-  <div class="menu">
-    <button class="active" id="btnTap" onclick="openPage('tap')">🔥 Tap</button>
-    <button id="btnShop" onclick="openPage('shop')">🛒 Shop</button>
-    <button id="btnProfile" onclick="openPage('profile')">👤 Profile</button>
-  </div>
+<div class="menu">
+  <button>🔥 Tap</button>
+  <button>🛒 Shop</button>
+  <button>👤 Profile</button>
 </div>
 
 <script>
 let score = parseInt(localStorage.getItem("score")) || 0;
-let mult = parseInt(localStorage.getItem("mult")) || 1;
-
 const scoreEl = document.getElementById("score");
-const multEl = document.getElementById("multiplier");
-const pScoreEl = document.getElementById("pScore");
-const pMultEl = document.getElementById("pMult");
+scoreEl.textContent = score;
 
-updateUI();
-
-function tap() {
-  score += mult;
-  save();
-}
-
-function buy(newMult, price) {
-  if (score < price) {
-    alert("❌ Не хватает очков");
-    return;
-  }
-  if (newMult <= mult) {
-    alert("✅ Уже куплено");
-    return;
-  }
-  score -= price;
-  mult = newMult;
-  save();
-}
-
-function save() {
+// TAP
+function tap(e) {
+  score++;
   localStorage.setItem("score", score);
-  localStorage.setItem("mult", mult);
-  updateUI();
-}
-
-function updateUI() {
   scoreEl.textContent = score;
-  multEl.textContent = mult;
-  pScoreEl.textContent = score;
-  pMultEl.textContent = mult;
+
+  // +1 анимация
+  const plus = document.createElement("div");
+  plus.className = "float";
+  plus.textContent = "+1";
+  plus.style.left = e.clientX + "px";
+  plus.style.top = e.clientY + "px";
+  document.body.appendChild(plus);
+
+  setTimeout(() => plus.remove(), 800);
 }
 
-function openPage(page) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.menu button').forEach(b => b.classList.remove('active'));
-
-  if (page === 'tap') {
-    tapPage.classList.add('active');
-    btnTap.classList.add('active');
-  }
-  if (page === 'shop') {
-    shopPage.classList.add('active');
-    btnShop.classList.add('active');
-  }
-  if (page === 'profile') {
-    profilePage.classList.add('active');
-    btnProfile.classList.add('active');
-  }
-}
-
+// Telegram full screen
 if (window.Telegram && Telegram.WebApp) {
   Telegram.WebApp.expand();
 }

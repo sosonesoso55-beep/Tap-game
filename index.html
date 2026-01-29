@@ -2,45 +2,78 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Anime Tap</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anime Tap</title>
 
 <style>
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  user-select: none;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
 }
 
 body {
-  width: 100vw;
-  height: 100vh;
-  background: radial-gradient(circle at top, #1b0033, #000);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  font-family: Arial, sans-serif;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle at top, #2b0040, #000);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
 }
 
+/* Очки */
 #score {
-  position: absolute;
-  top: 20px;
-  font-size: 32px;
-  color: #fff;
-  text-shadow: 0 0 10px #ff5cff;
+    font-size: 34px;
+    color: #fff;
+    margin-bottom: 25px;
+    text-shadow: 0 0 15px #ff66ff;
 }
 
+/* Тап */
 #tap {
-  width: 80vmin;
-  max-width: 420px;
-  cursor: pointer;
-  transition: transform 0.08s ease;
+    width: 260px;
+    height: 260px;
+    border: none;
+    background: none;
+    padding: 0;
 }
 
-#tap:active {
-  transform: scale(0.94);
+#tap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    box-shadow: 0 0 40px #ff4dff;
+    transition: transform 0.1s ease;
+}
+
+#tap:active img {
+    transform: scale(0.92);
+}
+
+/* +1 */
+.plus {
+    position: absolute;
+    font-size: 24px;
+    color: #ff7bff;
+    pointer-events: none;
+    animation: floatUp 1s ease-out forwards;
+    text-shadow: 0 0 10px #ff7bff;
+}
+
+@keyframes floatUp {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-80px);
+    }
 }
 </style>
 </head>
@@ -49,16 +82,30 @@ body {
 
 <div id="score">Очки: 0</div>
 
-<img id="tap" src="tap.png" alt="tap">
+<button id="tap">
+    <img src="file_0000000ba1c71f4c980ff2d2fe7b75bc.png" alt="tap">
+</button>
 
 <script>
 let score = 0;
 const scoreEl = document.getElementById("score");
-const tap = document.getElementById("tap");
+const tapBtn = document.getElementById("tap");
 
-tap.addEventListener("click", () => {
-  score++;
-  scoreEl.textContent = "Очки: " + score;
+tapBtn.addEventListener("click", (e) => {
+    score++;
+    scoreEl.textContent = "Очки: " + score;
+
+    const plus = document.createElement("div");
+    plus.className = "plus";
+    plus.textContent = "+1";
+    plus.style.left = e.clientX + "px";
+    plus.style.top = e.clientY + "px";
+
+    document.body.appendChild(plus);
+
+    setTimeout(() => {
+        plus.remove();
+    }, 1000);
 });
 </script>
 

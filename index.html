@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Tap Game</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body {
@@ -20,7 +19,7 @@ body {
 
 .score {
   font-size: 32px;
-  margin-bottom: 30px;
+  margin-bottom: 40px;
 }
 
 .tap {
@@ -28,7 +27,7 @@ body {
   height: 220px;
   border-radius: 50%;
   background: radial-gradient(circle, #ff5fd2, #7f00ff);
-  box-shadow: 0 0 50px rgba(255, 95, 210, 0.9);
+  box-shadow: 0 0 40px rgba(255, 95, 210, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -36,27 +35,35 @@ body {
   font-weight: bold;
   cursor: pointer;
   user-select: none;
-  transition: transform 0.08s ease;
+  transition: transform 0.1s;
 }
 
 .tap:active {
-  transform: scale(0.93);
+  transform: scale(0.92);
 }
 </style>
 </head>
 
 <body>
 
-<div class="score">💰 Монеты: <span id="score">0</span></div>
-<div class="tap" onclick="tap()">TAP</div>
+<div class="score">💰 <span id="score">0</span></div>
+<div class="tap" id="tap">TAP</div>
 
 <script>
-let score = 0;
+let score = localStorage.getItem("score")
+  ? parseInt(localStorage.getItem("score"))
+  : 0;
 
-function tap() {
+const scoreEl = document.getElementById("score");
+const tapBtn = document.getElementById("tap");
+
+scoreEl.textContent = score;
+
+tapBtn.addEventListener("click", () => {
   score++;
-  document.getElementById("score").innerText = score;
-}
+  scoreEl.textContent = score;
+  localStorage.setItem("score", score);
+});
 </script>
 
 </body>

@@ -5,32 +5,62 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AniTap</title>
 
-<!-- Telegram Mini App -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
 body {
   background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-  color: white;
-  font-family: Arial, sans-serif;
-  margin: 0;
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
+  color: white;
 }
 
 .app {
-  background: rgba(0,0,0,0.65);
   width: 320px;
-  padding: 25px;
+  height: 540px;
+  background: rgba(0,0,0,0.65);
   border-radius: 20px;
-  text-align: center;
+  overflow: hidden;
+  position: relative;
 }
 
-.score {
+.header {
+  text-align: center;
+  padding: 15px;
   font-size: 22px;
-  margin: 15px 0;
+  font-weight: bold;
+}
+
+.page {
+  display: none;
+  height: calc(100% - 120px);
+  padding: 20px;
+  animation: fade 0.3s;
+}
+
+.page.active {
+  display: block;
+}
+
+@keyframes fade {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* TAP */
+.score {
+  text-align: center;
+  font-size: 22px;
+  margin-bottom: 15px;
 }
 
 .tap {
@@ -52,10 +82,40 @@ body {
   transform: scale(0.92);
 }
 
-.footer {
-  margin-top: 15px;
-  font-size: 12px;
-  opacity: 0.7;
+/* MENU */
+.menu {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 60px;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+}
+
+.menu button {
+  flex: 1;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 14px;
+}
+
+.menu button.active {
+  background: rgba(255,255,255,0.1);
+}
+
+/* SHOP */
+.shop-item {
+  background: rgba(255,255,255,0.1);
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+/* PROFILE */
+.profile {
+  text-align: center;
+  font-size: 16px;
 }
 </style>
 </head>
@@ -63,25 +123,78 @@ body {
 <body>
 
 <div class="app">
-  <h2>🔥 AniTap 🔥</h2>
-  <div class="score">💰 Очки: <span id="score">0</span></div>
-  <div class="tap" onclick="tap()">TAP</div>
-  <div class="footer">Telegram Mini App</div>
+
+  <div class="header">🔥 AniTap 🔥</div>
+
+  <!-- TAP PAGE -->
+  <div class="page active" id="tapPage">
+    <div class="score">💰 Очки: <span id="score">0</span></div>
+    <div class="tap" onclick="tap()">TAP</div>
+  </div>
+
+  <!-- SHOP PAGE -->
+  <div class="page" id="shopPage">
+    <div class="shop-item">⚡ Скоро будет магазин</div>
+    <div class="shop-item">🚀 Апгрейды</div>
+  </div>
+
+  <!-- PROFILE PAGE -->
+  <div class="page" id="profilePage">
+    <div class="profile">
+      👤 Профиль<br><br>
+      Очки: <span id="profileScore">0</span>
+    </div>
+  </div>
+
+  <!-- MENU -->
+  <div class="menu">
+    <button id="btnTap" class="active" onclick="openPage('tap')">🔥 Tap</button>
+    <button id="btnShop" onclick="openPage('shop')">🛒 Shop</button>
+    <button id="btnProfile" onclick="openPage('profile')">👤 Profile</button>
+  </div>
+
 </div>
 
 <script>
 let score = localStorage.getItem("score");
-
 if (!score) score = 0;
-document.getElementById("score").innerText = score;
+
+updateScore();
 
 function tap() {
   score++;
-  document.getElementById("score").innerText = score;
-  localStorage.setItem("score", score);
+  saveScore();
 }
 
-// Telegram (не ломает, даже если открыт в браузере)
+function saveScore() {
+  localStorage.setItem("score", score);
+  updateScore();
+}
+
+function updateScore() {
+  document.getElementById("score").innerText = score;
+  document.getElementById("profileScore").innerText = score;
+}
+
+function openPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.menu button').forEach(b => b.classList.remove('active'));
+
+  if (page === 'tap') {
+    tapPage.classList.add('active');
+    btnTap.classList.add('active');
+  }
+  if (page === 'shop') {
+    shopPage.classList.add('active');
+    btnShop.classList.add('active');
+  }
+  if (page === 'profile') {
+    profilePage.classList.add('active');
+    btnProfile.classList.add('active');
+  }
+}
+
+// Telegram safe
 if (window.Telegram && Telegram.WebApp) {
   Telegram.WebApp.expand();
 }

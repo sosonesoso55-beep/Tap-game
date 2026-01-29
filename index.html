@@ -8,20 +8,15 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
-}
-
 body {
+  margin: 0;
   background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
   color: white;
+  font-family: Arial, sans-serif;
 }
 
 .app {
@@ -44,29 +39,22 @@ body {
   display: none;
   height: calc(100% - 120px);
   padding: 20px;
-  animation: fade 0.3s;
 }
 
 .page.active {
   display: block;
 }
 
-@keyframes fade {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 /* TAP */
 .score {
   text-align: center;
   font-size: 20px;
-  margin-bottom: 10px;
 }
 
 .tap {
   width: 200px;
   height: 200px;
-  margin: 10px auto;
+  margin: 15px auto;
   border-radius: 50%;
   background: radial-gradient(circle, #ff416c, #ff4b2b);
   display: flex;
@@ -75,17 +63,32 @@ body {
   font-size: 28px;
   font-weight: bold;
   cursor: pointer;
-  user-select: none;
 }
 
 .tap:active {
-  transform: scale(0.92);
+  transform: scale(0.9);
 }
 
 .mult {
   text-align: center;
   font-size: 14px;
   opacity: 0.8;
+}
+
+/* SHOP */
+.shop-item {
+  background: rgba(255,255,255,0.1);
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+.shop-item button {
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: 10px;
+  border: none;
 }
 
 /* MENU */
@@ -103,28 +106,10 @@ body {
   background: none;
   border: none;
   color: white;
-  font-size: 14px;
 }
 
 .menu button.active {
-  background: rgba(255,255,255,0.1);
-}
-
-/* SHOP */
-.shop-item {
-  background: rgba(255,255,255,0.1);
-  padding: 15px;
-  border-radius: 12px;
-  margin-bottom: 10px;
-}
-
-.shop-item button {
-  margin-top: 8px;
-  width: 100%;
-  padding: 8px;
-  border-radius: 10px;
-  border: none;
-  font-weight: bold;
+  background: rgba(255,255,255,0.15);
 }
 </style>
 </head>
@@ -132,7 +117,6 @@ body {
 <body>
 
 <div class="app">
-
   <div class="header">🔥 AniTap 🔥</div>
 
   <!-- TAP -->
@@ -145,47 +129,46 @@ body {
   <!-- SHOP -->
   <div class="page" id="shopPage">
     <div class="shop-item">
-      ⚡ Множитель x2<br>
-      Цена: 100 очков
-      <button onclick="buy(2, 100)">Купить</button>
+      ⚡ x2<br>Цена: 100
+      <button onclick="buy(2,100)">Купить</button>
     </div>
     <div class="shop-item">
-      🚀 Множитель x5<br>
-      Цена: 500 очков
-      <button onclick="buy(5, 500)">Купить</button>
+      🚀 x5<br>Цена: 500
+      <button onclick="buy(5,500)">Купить</button>
     </div>
   </div>
 
   <!-- PROFILE -->
   <div class="page" id="profilePage">
     👤 Профиль<br><br>
-    Очки: <span id="profileScore">0</span><br>
-    Множитель: x<span id="profileMult">1</span>
+    Очки: <span id="pScore">0</span><br>
+    Множитель: x<span id="pMult">1</span>
   </div>
 
   <!-- MENU -->
   <div class="menu">
-    <button id="btnTap" class="active" onclick="openPage('tap')">🔥 Tap</button>
+    <button class="active" id="btnTap" onclick="openPage('tap')">🔥 Tap</button>
     <button id="btnShop" onclick="openPage('shop')">🛒 Shop</button>
     <button id="btnProfile" onclick="openPage('profile')">👤 Profile</button>
   </div>
-
 </div>
 
 <script>
-// загрузка
 let score = parseInt(localStorage.getItem("score")) || 0;
 let mult = parseInt(localStorage.getItem("mult")) || 1;
 
+const scoreEl = document.getElementById("score");
+const multEl = document.getElementById("multiplier");
+const pScoreEl = document.getElementById("pScore");
+const pMultEl = document.getElementById("pMult");
+
 updateUI();
 
-// TAP
 function tap() {
   score += mult;
   save();
 }
 
-// BUY
 function buy(newMult, price) {
   if (score < price) {
     alert("❌ Не хватает очков");
@@ -198,10 +181,8 @@ function buy(newMult, price) {
   score -= price;
   mult = newMult;
   save();
-  alert("🎉 Куплено! x" + newMult);
 }
 
-// SAVE + UPDATE
 function save() {
   localStorage.setItem("score", score);
   localStorage.setItem("mult", mult);
@@ -209,13 +190,12 @@ function save() {
 }
 
 function updateUI() {
-  scoreEl.innerText = score;
-  multiplier.innerText = mult;
-  profileScore.innerText = score;
-  profileMult.innerText = mult;
+  scoreEl.textContent = score;
+  multEl.textContent = mult;
+  pScoreEl.textContent = score;
+  pMultEl.textContent = mult;
 }
 
-// MENU
 function openPage(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.menu button').forEach(b => b.classList.remove('active'));
@@ -234,7 +214,6 @@ function openPage(page) {
   }
 }
 
-// Telegram safe
 if (window.Telegram && Telegram.WebApp) {
   Telegram.WebApp.expand();
 }

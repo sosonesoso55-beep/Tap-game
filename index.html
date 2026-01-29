@@ -59,14 +59,14 @@ body {
 /* TAP */
 .score {
   text-align: center;
-  font-size: 22px;
-  margin-bottom: 15px;
+  font-size: 20px;
+  margin-bottom: 10px;
 }
 
 .tap {
   width: 200px;
   height: 200px;
-  margin: 0 auto;
+  margin: 10px auto;
   border-radius: 50%;
   background: radial-gradient(circle, #ff416c, #ff4b2b);
   display: flex;
@@ -80,6 +80,12 @@ body {
 
 .tap:active {
   transform: scale(0.92);
+}
+
+.mult {
+  text-align: center;
+  font-size: 14px;
+  opacity: 0.8;
 }
 
 /* MENU */
@@ -112,10 +118,13 @@ body {
   margin-bottom: 10px;
 }
 
-/* PROFILE */
-.profile {
-  text-align: center;
-  font-size: 16px;
+.shop-item button {
+  margin-top: 8px;
+  width: 100%;
+  padding: 8px;
+  border-radius: 10px;
+  border: none;
+  font-weight: bold;
 }
 </style>
 </head>
@@ -126,24 +135,32 @@ body {
 
   <div class="header">🔥 AniTap 🔥</div>
 
-  <!-- TAP PAGE -->
+  <!-- TAP -->
   <div class="page active" id="tapPage">
     <div class="score">💰 Очки: <span id="score">0</span></div>
     <div class="tap" onclick="tap()">TAP</div>
+    <div class="mult">Множитель: x<span id="multiplier">1</span></div>
   </div>
 
-  <!-- SHOP PAGE -->
+  <!-- SHOP -->
   <div class="page" id="shopPage">
-    <div class="shop-item">⚡ Скоро будет магазин</div>
-    <div class="shop-item">🚀 Апгрейды</div>
+    <div class="shop-item">
+      ⚡ Множитель x2<br>
+      Цена: 100 очков
+      <button onclick="buy(2, 100)">Купить</button>
+    </div>
+    <div class="shop-item">
+      🚀 Множитель x5<br>
+      Цена: 500 очков
+      <button onclick="buy(5, 500)">Купить</button>
+    </div>
   </div>
 
-  <!-- PROFILE PAGE -->
+  <!-- PROFILE -->
   <div class="page" id="profilePage">
-    <div class="profile">
-      👤 Профиль<br><br>
-      Очки: <span id="profileScore">0</span>
-    </div>
+    👤 Профиль<br><br>
+    Очки: <span id="profileScore">0</span><br>
+    Множитель: x<span id="profileMult">1</span>
   </div>
 
   <!-- MENU -->
@@ -156,26 +173,49 @@ body {
 </div>
 
 <script>
-let score = localStorage.getItem("score");
-if (!score) score = 0;
+// загрузка
+let score = parseInt(localStorage.getItem("score")) || 0;
+let mult = parseInt(localStorage.getItem("mult")) || 1;
 
-updateScore();
+updateUI();
 
+// TAP
 function tap() {
-  score++;
-  saveScore();
+  score += mult;
+  save();
 }
 
-function saveScore() {
+// BUY
+function buy(newMult, price) {
+  if (score < price) {
+    alert("❌ Не хватает очков");
+    return;
+  }
+  if (newMult <= mult) {
+    alert("✅ Уже куплено");
+    return;
+  }
+  score -= price;
+  mult = newMult;
+  save();
+  alert("🎉 Куплено! x" + newMult);
+}
+
+// SAVE + UPDATE
+function save() {
   localStorage.setItem("score", score);
-  updateScore();
+  localStorage.setItem("mult", mult);
+  updateUI();
 }
 
-function updateScore() {
-  document.getElementById("score").innerText = score;
-  document.getElementById("profileScore").innerText = score;
+function updateUI() {
+  scoreEl.innerText = score;
+  multiplier.innerText = mult;
+  profileScore.innerText = score;
+  profileMult.innerText = mult;
 }
 
+// MENU
 function openPage(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.menu button').forEach(b => b.classList.remove('active'));

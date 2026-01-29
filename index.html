@@ -2,10 +2,8 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>AniTap</title>
-
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<title>Anime Tap</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 * {
@@ -18,129 +16,50 @@
 body {
   width: 100vw;
   height: 100vh;
-  background: radial-gradient(circle at top, #1b2735, #090a0f);
-  font-family: Arial, sans-serif;
-  color: white;
-  overflow: hidden;
-}
-
-/* HEADER */
-.header {
-  position: absolute;
-  top: 15px;
-  width: 100%;
-  text-align: center;
-  font-size: 22px;
-  font-weight: bold;
-}
-
-/* SCORE */
-.score {
-  position: absolute;
-  top: 55px;
-  width: 100%;
-  text-align: center;
-  font-size: 18px;
-}
-
-/* TAP AREA */
-.tap-area {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-/* LOGO */
-.logo {
-  width: 220px;
-  height: 220px;
-  border-radius: 50%;
-  object-fit: cover;
-  cursor: pointer;
-  transition: transform 0.1s;
-}
-
-.logo:active {
-  transform: scale(0.92);
-}
-
-/* MENU */
-.menu {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 65px;
-  background: rgba(0,0,0,0.6);
+  background: radial-gradient(circle at top, #1b0033, #000);
   display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
 }
 
-.menu button {
-  flex: 1;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 14px;
-}
-
-/* FLOAT TEXT */
-.float {
+#score {
   position: absolute;
-  color: #00ffcc;
-  font-size: 20px;
-  animation: floatUp 0.8s forwards;
-  pointer-events: none;
+  top: 20px;
+  font-size: 32px;
+  color: #fff;
+  text-shadow: 0 0 10px #ff5cff;
 }
 
-@keyframes floatUp {
-  from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(-40px); }
+#tap {
+  width: 80vmin;
+  max-width: 420px;
+  cursor: pointer;
+  transition: transform 0.08s ease;
+}
+
+#tap:active {
+  transform: scale(0.94);
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">🔥 AniTap 🔥</div>
-<div class="score">💰 Очки: <span id="score">0</span></div>
+<div id="score">Очки: 0</div>
 
-<div class="tap-area">
-  <!-- ЛОГО -->
-  <img src="logo.png" class="logo" onclick="tap(event)">
-</div>
-
-<div class="menu">
-  <button>🔥 Tap</button>
-  <button>🛒 Shop</button>
-  <button>👤 Profile</button>
-</div>
+<img id="tap" src="tap.png" alt="tap">
 
 <script>
-let score = parseInt(localStorage.getItem("score")) || 0;
+let score = 0;
 const scoreEl = document.getElementById("score");
-scoreEl.textContent = score;
+const tap = document.getElementById("tap");
 
-// TAP
-function tap(e) {
+tap.addEventListener("click", () => {
   score++;
-  localStorage.setItem("score", score);
-  scoreEl.textContent = score;
-
-  // +1 анимация
-  const plus = document.createElement("div");
-  plus.className = "float";
-  plus.textContent = "+1";
-  plus.style.left = e.clientX + "px";
-  plus.style.top = e.clientY + "px";
-  document.body.appendChild(plus);
-
-  setTimeout(() => plus.remove(), 800);
-}
-
-// Telegram full screen
-if (window.Telegram && Telegram.WebApp) {
-  Telegram.WebApp.expand();
-}
+  scoreEl.textContent = "Очки: " + score;
+});
 </script>
 
 </body>

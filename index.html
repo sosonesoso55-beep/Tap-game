@@ -6,82 +6,68 @@
 <title>Anime Tap</title>
 
 <style>
-* {
-  box-sizing: border-box;
-  user-select: none;
+*{box-sizing:border-box;user-select:none}
+body{
+margin:0;height:100vh;
+background:radial-gradient(circle,#24003d,#000);
+color:#fff;font-family:Arial;
+display:flex;flex-direction:column;
+align-items:center;overflow:hidden;
 }
 
-body {
-  margin: 0;
-  height: 100vh;
-  background: radial-gradient(circle at top, #2b004f, #000);
-  color: #fff;
-  font-family: Arial, sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  overflow: hidden;
+header{font-size:24px;margin:10px;text-shadow:0 0 15px #ff66ff}
+#score{font-size:30px;margin-bottom:5px}
+#coins{font-size:16px;opacity:.8}
+
+#girl{
+width:80vw;max-width:320px;
+transition:.1s;
+filter:drop-shadow(0 0 30px #ff66ff);
 }
 
-header {
-  padding: 10px;
-  font-size: 22px;
-  font-weight: bold;
+.menu{display:flex;gap:10px;margin:10px}
+button{
+background:linear-gradient(135deg,#ff3cac,#784ba0);
+border:none;border-radius:12px;
+padding:10px;color:white;
+box-shadow:0 0 15px #ff66ff;
 }
 
-#score {
-  font-size: 28px;
-  margin-bottom: 10px;
-  text-shadow: 0 0 15px #ff66ff;
+.panel{
+position:absolute;bottom:90px;
+background:rgba(0,0,0,.8);
+border-radius:12px;
+padding:12px;display:none;
+width:85%;max-height:45%;
+overflow:auto;
 }
 
-#girl {
-  width: 80vw;
-  max-width: 320px;
-  transition: transform 0.1s;
-  filter: drop-shadow(0 0 30px #ff66ff);
+.item{
+border-bottom:1px solid #444;
+padding:8px 0;
+display:flex;justify-content:space-between;
+align-items:center;
 }
 
-.menu {
-  display: flex;
-  gap: 10px;
-  padding: 10px;
+.star{
+position:fixed;font-size:22px;
+animation:fly 1s forwards;
+pointer-events:none;
 }
 
-button {
-  background: linear-gradient(135deg, #ff3cac, #784ba0);
-  border: none;
-  border-radius: 12px;
-  padding: 10px 14px;
-  color: white;
-  font-size: 14px;
-  box-shadow: 0 0 15px #ff66ff;
+@keyframes fly{
+to{transform:translateY(-120px) scale(1.6);opacity:0}
 }
 
-#top {
-  position: absolute;
-  bottom: 90px;
-  background: rgba(0,0,0,0.7);
-  padding: 10px;
-  border-radius: 10px;
-  display: none;
-  max-width: 80%;
+.shake{
+animation:shake .2s;
 }
-
-.star {
-  position: fixed;
-  font-size: 22px;
-  animation: fly 1s linear forwards;
-  pointer-events: none;
-}
-
-@keyframes fly {
-  from { opacity: 1; }
-  to {
-    transform: translateY(-120px) scale(1.5);
-    opacity: 0;
-  }
+@keyframes shake{
+0%{transform:translateX(0)}
+25%{transform:translateX(-5px)}
+50%{transform:translateX(5px)}
+75%{transform:translateX(-5px)}
+100%{transform:translateX(0)}
 }
 </style>
 </head>
@@ -89,86 +75,96 @@ button {
 <body>
 
 <header>🌸 Anime Tap</header>
-
 <div id="score">0</div>
+<div id="coins">💎 0</div>
 
 <img src="girl.png" id="girl">
 
 <div class="menu">
-  <button onclick="loadTop()">🏆 ТОП</button>
+<button onclick="toggleShop()">🛒 Магазин</button>
+<button onclick="toggleTop()">🏆 ТОП</button>
 </div>
 
-<div id="top"></div>
-
-<audio id="bgm" src="music.mp3" loop></audio>
+<div id="shop" class="panel"></div>
+<div id="top" class="panel"></div>
 
 <script>
-/* ===== НАСТРОЙКИ ===== */
-const SERVER = "https://anime-tap-server-1.onrender.com";
+const SERVER="https://anime-tap-server-1.onrender.com";
 
-/* ===== USER ID ===== */
-const USER_ID = localStorage.getItem("uid") || (() => {
-  const id = Math.random().toString(36).slice(2);
-  localStorage.setItem("uid", id);
-  return id;
-})();
+const USER_ID=localStorage.uid||(localStorage.uid=Math.random().toString(36).slice(2));
 
-/* ===== ЗАГРУЗКА ОЧКОВ ===== */
-async function load() {
-  const r = await fetch(`${SERVER}/me?id=${USER_ID}`);
-  const d = await r.json();
-  document.getElementById("score").innerText = d.score;
+let power=1, crit=0;
+
+async function load(){
+const r=await fetch(`${SERVER}/me?id=${USER_ID}`);
+const d=await r.json();
+document.getElementById("score").innerText=d.score;
+document.getElementById("coins").innerText="💎 "+d.coins;
+power=d.power||1;
+crit=d.crit||0;
 }
 
-/* ===== ТАП ===== */
-async function tap(e) {
-  const r = await fetch(`${SERVER}/tap`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id: USER_ID })
-  });
+async function tap(e){
+const r=await fetch(`${SERVER}/tap`,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({id:USER_ID})
+});
+const d=await r.json();
+document.getElementById("score").innerText=d.score;
+document.getElementById("coins").innerText="💎 "+d.coins;
 
-  const d = await r.json();
-  document.getElementById("score").innerText = d.score;
+const img=document.getElementById("girl");
+img.style.transform="scale(0.9)";
+img.classList.add("shake");
+setTimeout(()=>{img.style.transform="scale(1)";img.classList.remove("shake")},120);
 
-  // анимация
-  const img = document.getElementById("girl");
-  img.style.transform = "scale(0.92)";
-  setTimeout(() => img.style.transform = "scale(1)", 100);
-
-  // звезда
-  const s = document.createElement("div");
-  s.className = "star";
-  s.innerText = "⭐";
-  s.style.left = e.clientX + "px";
-  s.style.top = e.clientY + "px";
-  document.body.appendChild(s);
-  setTimeout(()=>s.remove(),1000);
+const s=document.createElement("div");
+s.className="star";
+s.innerText=Math.random()<crit?"💥":"⭐";
+s.style.left=e.clientX+"px";
+s.style.top=e.clientY+"px";
+document.body.appendChild(s);
+setTimeout(()=>s.remove(),1000);
 }
 
-/* ===== ЛИДЕРБОРД ===== */
-async function loadTop() {
-  const box = document.getElementById("top");
-  if (box.style.display === "block") {
-    box.style.display = "none";
-    return;
-  }
+function toggleShop(){
+const s=document.getElementById("shop");
+s.style.display=s.style.display=="block"?"none":"block";
+s.innerHTML=`
+<b>🛒 Магазин</b><br><br>
 
-  const r = await fetch(`${SERVER}/leaderboard`);
-  const data = await r.json();
+<div class="item">x2 на 10 мин <button onclick="buy('x2')">50💎</button></div>
+<div class="item">x5 на 10 мин <button onclick="buy('x5')">120💎</button></div>
+<div class="item">AutoTap 5 мин <button onclick="buy('auto')">80💎</button></div>
 
-  box.innerHTML = "<b>🏆 Лидерборд</b><br><br>" +
-    data.map((u,i)=>`${i+1}. ${u.score}`).join("<br>");
-  box.style.display = "block";
+<hr>
+
+<div class="item">+1 за тап <button onclick="buy('p1')">60💎</button></div>
+<div class="item">+2 за тап <button onclick="buy('p2')">120💎</button></div>
+<div class="item">Крит x3 <button onclick="buy('crit')">150💎</button></div>
+`;
 }
 
-/* ===== МУЗЫКА ===== */
-document.body.addEventListener("click",()=>{
-  document.getElementById("bgm").play().catch(()=>{});
-},{ once:true });
+async function buy(type){
+await fetch(`${SERVER}/buy`,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({id:USER_ID,type})
+});
+load();
+}
 
-document.getElementById("girl").addEventListener("click", tap);
+async function toggleTop(){
+const t=document.getElementById("top");
+if(t.style.display=="block"){t.style.display="none";return;}
+const r=await fetch(`${SERVER}/leaderboard`);
+const d=await r.json();
+t.innerHTML="<b>🏆 ТОП</b><br><br>"+d.map((u,i)=>`${i+1}. ${u.score}`).join("<br>");
+t.style.display="block";
+}
 
+document.getElementById("girl").onclick=tap;
 load();
 </script>
 

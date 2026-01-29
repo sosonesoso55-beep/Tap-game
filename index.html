@@ -2,32 +2,51 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Tap Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AniTap</title>
 
 <style>
-body {
+* {
   margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
   height: 100vh;
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(160deg, #0f0c29, #302b63, #24243e);
-  font-family: Arial, sans-serif;
-  color: #fff;
+  color: white;
+}
+
+.container {
+  background: rgba(0,0,0,0.6);
+  padding: 25px;
+  border-radius: 20px;
+  width: 320px;
+  text-align: center;
+  box-shadow: 0 0 30px rgba(0,0,0,0.7);
+}
+
+h1 {
+  margin-bottom: 15px;
+  font-size: 28px;
 }
 
 .score {
-  font-size: 32px;
-  margin-bottom: 40px;
+  font-size: 22px;
+  margin-bottom: 20px;
 }
 
 .tap {
-  width: 220px;
-  height: 220px;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 20px;
   border-radius: 50%;
-  background: radial-gradient(circle, #ff5fd2, #7f00ff);
-  box-shadow: 0 0 40px rgba(255, 95, 210, 0.8);
+  background: radial-gradient(circle, #ff416c, #ff4b2b);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -41,29 +60,39 @@ body {
 .tap:active {
   transform: scale(0.92);
 }
+
+.info {
+  font-size: 14px;
+  opacity: 0.8;
+}
 </style>
 </head>
 
 <body>
 
-<div class="score">💰 <span id="score">0</span></div>
-<div class="tap" id="tap">TAP</div>
+<div class="container">
+  <h1>🔥 AniTap 🔥</h1>
+  <div class="score">Очки: <span id="score">0</span></div>
+
+  <div class="tap" onclick="tap()">TAP</div>
+
+  <div class="info">Тапай и прокачивайся 🚀</div>
+</div>
 
 <script>
-let score = localStorage.getItem("score")
-  ? parseInt(localStorage.getItem("score"))
-  : 0;
+const API = "http://127.0.0.1:5000";
 
-const scoreEl = document.getElementById("score");
-const tapBtn = document.getElementById("tap");
-
-scoreEl.textContent = score;
-
-tapBtn.addEventListener("click", () => {
-  score++;
-  scoreEl.textContent = score;
-  localStorage.setItem("score", score);
-});
+async function tap() {
+  try {
+    const res = await fetch(API + "/tap", {
+      method: "POST"
+    });
+    const data = await res.json();
+    document.getElementById("score").innerText = data.score;
+  } catch (e) {
+    alert("Сервер не запущен");
+  }
+}
 </script>
 
 </body>

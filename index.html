@@ -3,33 +3,70 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tap Test</title>
+<title>AniTap</title>
+
+<!-- Telegram Mini App -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
 body {
-  background: #111;
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
   color: white;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  font-family: Arial;
 }
 
-button {
-  font-size: 24px;
-  padding: 20px 40px;
-  border-radius: 15px;
-  border: none;
+.app {
+  background: rgba(0,0,0,0.65);
+  width: 320px;
+  padding: 25px;
+  border-radius: 20px;
+  text-align: center;
+}
+
+.score {
+  font-size: 22px;
+  margin: 15px 0;
+}
+
+.tap {
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ff416c, #ff4b2b);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tap:active {
+  transform: scale(0.92);
+}
+
+.footer {
+  margin-top: 15px;
+  font-size: 12px;
+  opacity: 0.7;
 }
 </style>
 </head>
 
 <body>
 
-<div>
-  <p>Очки: <span id="score">0</span></p>
-  <button onclick="tap()">TAP</button>
+<div class="app">
+  <h2>🔥 AniTap 🔥</h2>
+  <div class="score">💰 Очки: <span id="score">0</span></div>
+  <div class="tap" onclick="tap()">TAP</div>
+  <div class="footer">Telegram Mini App</div>
 </div>
 
 <script>
@@ -42,6 +79,11 @@ function tap() {
   score++;
   document.getElementById("score").innerText = score;
   localStorage.setItem("score", score);
+}
+
+// Telegram (не ломает, даже если открыт в браузере)
+if (window.Telegram && Telegram.WebApp) {
+  Telegram.WebApp.expand();
 }
 </script>
 

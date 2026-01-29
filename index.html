@@ -6,166 +6,107 @@
 <title>Anime Tap</title>
 
 <style>
-*{box-sizing:border-box;user-select:none}
+*{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif}
 body{
-margin:0;height:100vh;
-background:radial-gradient(circle,#24003d,#000);
-color:#fff;font-family:Arial;
-display:flex;flex-direction:column;
-align-items:center;overflow:hidden;
+  background: radial-gradient(circle at top,#1b0033,#000);
+  color:white;
+  height:100vh;
+  overflow:hidden;
 }
 
-header{font-size:24px;margin:10px;text-shadow:0 0 15px #ff66ff}
-#score{font-size:30px;margin-bottom:5px}
-#coins{font-size:16px;opacity:.8}
+#score{
+  text-align:center;
+  font-size:28px;
+  margin-top:15px;
+}
 
 #girl{
-width:80vw;max-width:320px;
-transition:.1s;
-filter:drop-shadow(0 0 30px #ff66ff);
+  display:block;
+  margin:40px auto;
+  width:260px;
+  transition:transform 0.1s, filter 0.1s;
+  filter:drop-shadow(0 0 30px #ff66ff);
 }
 
-.menu{display:flex;gap:10px;margin:10px}
-button{
-background:linear-gradient(135deg,#ff3cac,#784ba0);
-border:none;border-radius:12px;
-padding:10px;color:white;
-box-shadow:0 0 15px #ff66ff;
+#girl:active{
+  transform:scale(0.92);
+  filter:drop-shadow(0 0 60px #ff99ff);
 }
 
-.panel{
-position:absolute;bottom:90px;
-background:rgba(0,0,0,.8);
-border-radius:12px;
-padding:12px;display:none;
-width:85%;max-height:45%;
-overflow:auto;
-}
-
-.item{
-border-bottom:1px solid #444;
-padding:8px 0;
-display:flex;justify-content:space-between;
-align-items:center;
-}
-
-.star{
-position:fixed;font-size:22px;
-animation:fly 1s forwards;
-pointer-events:none;
-}
-
-@keyframes fly{
-to{transform:translateY(-120px) scale(1.6);opacity:0}
-}
-
-.shake{
-animation:shake .2s;
-}
-@keyframes shake{
-0%{transform:translateX(0)}
-25%{transform:translateX(-5px)}
-50%{transform:translateX(5px)}
-75%{transform:translateX(-5px)}
-100%{transform:translateX(0)}
+#musicBtn{
+  position:fixed;
+  top:15px;
+  right:15px;
+  padding:10px 14px;
+  background:#ff4dff;
+  border:none;
+  border-radius:12px;
+  color:white;
+  font-size:16px;
 }
 </style>
 </head>
 
 <body>
 
-<header>🌸 Anime Tap</header>
-<div id="score">0</div>
-<div id="coins">💎 0</div>
+<button id="musicBtn">🔊</button>
+<div id="score">0 ⭐</div>
 
-<img src="girl.png" id="girl">
+<img id="girl" src="girl.png">
 
-<div class="menu">
-<button onclick="toggleShop()">🛒 Магазин</button>
-<button onclick="toggleTop()">🏆 ТОП</button>
-</div>
-
-<div id="shop" class="panel"></div>
-<div id="top" class="panel"></div>
+<!-- ЗВУКИ -->
+<audio id="bgm" src="music.mp3" loop></audio>
+<audio id="tapSound" src="tap.mp3"></audio>
 
 <script>
-const SERVER="https://anime-tap-server-1.onrender.com";
+const SERVER = "https://anime-tap-server-1.onrender.com";
+const USER_ID = "user_" + Math.random().toString(36).slice(2);
 
-const USER_ID=localStorage.uid||(localStorage.uid=Math.random().toString(36).slice(2));
+const scoreEl = document.getElementById("score");
+const girl = document.getElementById("girl");
+const bgm = document.getElementById("bgm");
+const tapSound = document.getElementById("tapSound");
+const musicBtn = document.getElementById("musicBtn");
 
-let power=1, crit=0;
+let musicOn = false;
 
+/* ===== МУЗЫКА ===== */
+musicBtn.onclick = ()=>{
+  if(!musicOn){
+    bgm.volume = 0.5;
+    bgm.play();
+    musicBtn.innerText="🔈";
+  }else{
+    bgm.pause();
+    musicBtn.innerText="🔊";
+  }
+  musicOn=!musicOn;
+};
+
+/* ===== ЗАГРУЗКА ===== */
 async function load(){
-const r=await fetch(`${SERVER}/me?id=${USER_ID}`);
-const d=await r.json();
-document.getElementById("score").innerText=d.score;
-document.getElementById("coins").innerText="💎 "+d.coins;
-power=d.power||1;
-crit=d.crit||0;
+  const r = await fetch(`${SERVER}/me?id=${USER_ID}`);
+  const d = await r.json();
+  scoreEl.innerText = d.score + " ⭐";
 }
-
-async function tap(e){
-const r=await fetch(`${SERVER}/tap`,{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({id:USER_ID})
-});
-const d=await r.json();
-document.getElementById("score").innerText=d.score;
-document.getElementById("coins").innerText="💎 "+d.coins;
-
-const img=document.getElementById("girl");
-img.style.transform="scale(0.9)";
-img.classList.add("shake");
-setTimeout(()=>{img.style.transform="scale(1)";img.classList.remove("shake")},120);
-
-const s=document.createElement("div");
-s.className="star";
-s.innerText=Math.random()<crit?"💥":"⭐";
-s.style.left=e.clientX+"px";
-s.style.top=e.clientY+"px";
-document.body.appendChild(s);
-setTimeout(()=>s.remove(),1000);
-}
-
-function toggleShop(){
-const s=document.getElementById("shop");
-s.style.display=s.style.display=="block"?"none":"block";
-s.innerHTML=`
-<b>🛒 Магазин</b><br><br>
-
-<div class="item">x2 на 10 мин <button onclick="buy('x2')">50💎</button></div>
-<div class="item">x5 на 10 мин <button onclick="buy('x5')">120💎</button></div>
-<div class="item">AutoTap 5 мин <button onclick="buy('auto')">80💎</button></div>
-
-<hr>
-
-<div class="item">+1 за тап <button onclick="buy('p1')">60💎</button></div>
-<div class="item">+2 за тап <button onclick="buy('p2')">120💎</button></div>
-<div class="item">Крит x3 <button onclick="buy('crit')">150💎</button></div>
-`;
-}
-
-async function buy(type){
-await fetch(`${SERVER}/buy`,{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({id:USER_ID,type})
-});
 load();
+
+/* ===== ТАП ===== */
+async function tap(){
+  tapSound.currentTime = 0;
+  tapSound.volume = 0.8;
+  tapSound.play();
+
+  const r = await fetch(`${SERVER}/tap`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({id:USER_ID})
+  });
+  const d = await r.json();
+  scoreEl.innerText = d.score + " ⭐";
 }
 
-async function toggleTop(){
-const t=document.getElementById("top");
-if(t.style.display=="block"){t.style.display="none";return;}
-const r=await fetch(`${SERVER}/leaderboard`);
-const d=await r.json();
-t.innerHTML="<b>🏆 ТОП</b><br><br>"+d.map((u,i)=>`${i+1}. ${u.score}`).join("<br>");
-t.style.display="block";
-}
-
-document.getElementById("girl").onclick=tap;
-load();
+girl.onclick = tap;
 </script>
 
 </body>
